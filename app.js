@@ -5,6 +5,7 @@ const passport = require("passport");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { raw } = require("mysql2");
 app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
@@ -34,6 +35,56 @@ app.get(
     }
   }
 );
+
+app.post("/login", async (req, res) => {
+  try {
+    const foundUser = (
+      await User.findOne({
+        where: {
+          username: req.body.username,
+        },
+      })
+    ).dataValues;
+
+    if (!foundUser) {
+      return res.status(404).json({
+        success: false,
+        message: "such user doesnot exist",
+      });
+    }
+
+    const validPassport = await bcrypt.compareSync(
+      req.body.password,
+      foundUser.hash
+    );
+
+    if (!validPassport) {
+      return res.status(404).json({
+        success: false,
+        message: "password is invalid not matching",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: foundUser.id,
+      },
+      "secret_key",
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      user: { ...foundUser, hash: null },
+      token: `Bearer ${token}`,
+      expires: "1d",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 app.post("/register", async (req, res) => {
   try {
