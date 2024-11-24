@@ -9,6 +9,8 @@ app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
+require("./config/passport")(passport);
+
 async function genPass(password) {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
@@ -18,6 +20,20 @@ async function genPass(password) {
   obj.hash = hash;
   return obj;
 }
+
+app.get(
+  "/protected",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    try {
+      res.json({
+        success: true,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 
 app.post("/register", async (req, res) => {
   try {
