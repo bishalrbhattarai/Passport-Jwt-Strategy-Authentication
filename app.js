@@ -43,7 +43,7 @@ app.post("/register", async (req, res) => {
         success: true,
         token: `Bearer ${signedToken}`,
         user: newUser,
-        expiresIn: "1d",
+        expires: "1d",
       });
     } else {
       throw new Error("Something went wrong");
