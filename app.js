@@ -5,12 +5,16 @@ const passport = require("passport");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { raw } = require("mysql2");
-app.use(cors());
-app.use(express.json());
-app.use(passport.initialize());
 
-require("./config/passport")(passport);
+app.use(express.json());
+app.use(
+  cors({
+    origin: ["*"],
+  })
+);
+
+app.use(passport.initialize());
+require("./config/passport");
 
 async function genPass(password) {
   const salt = await bcrypt.genSalt(10);
@@ -123,8 +127,6 @@ app.post("/register", async (req, res) => {
     });
   }
 });
-
-app.post("/login", (req, res) => {});
 
 app.listen(3000, async () => {
   console.log(`http://localhost:3000`);
